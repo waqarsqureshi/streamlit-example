@@ -25,8 +25,8 @@ def classify_image(image):
         probabilities = torch.nn.functional.softmax(output[0], dim=0)
 
     predicted_class_idx = torch.argmax(probabilities).item()
-    class_names = timm.data.resolve_data_config({}, model=model)['class_names']
-    predicted_class_name = class_names[predicted_class_idx]
+    #class_names = timm.data.resolve_data_config({}, model=model)['class_names']
+    #predicted_class_name = class_names[predicted_class_idx]
 
     return predicted_class_idx
 
