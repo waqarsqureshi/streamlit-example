@@ -5,6 +5,9 @@ from PIL import Image
 import torchvision.transforms as transforms
 
 def classify_image(image):
+    # Convert the image to RGB format
+    image = image.convert('RGB')
+
     preprocess = transforms.Compose([
         transforms.Resize(256),
         transforms.CenterCrop(224),
@@ -31,8 +34,4 @@ st.title("Image Classifier using timm")
 uploaded_file = st.file_uploader("Choose an image from your directory", type=['jpg', 'png', 'jpeg'])
 
 if uploaded_file is not None:
-    image = Image.open(uploaded_file)
-    st.image(image, caption="Uploaded Image", use_column_width=True)
-    st.write("Classifying...")
-    class_name = classify_image(image)
-    st.write(f"The predicted class of the image is: {class_name}")
+    image = Image
