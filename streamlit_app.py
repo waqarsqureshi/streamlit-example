@@ -28,7 +28,7 @@ def classify_image(image):
     class_names = timm.data.resolve_data_config({}, model=model)['class_names']
     predicted_class_name = class_names[predicted_class_idx]
 
-    return predicted_class_name
+    return predicted_class_idx
 
 st.title("Image Classifier using timm")
 uploaded_file = st.file_uploader("Choose an image from your directory", type=['jpg', 'png', 'jpeg'])
