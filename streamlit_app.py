@@ -34,4 +34,8 @@ st.title("Image Classifier using timm")
 uploaded_file = st.file_uploader("Choose an image from your directory", type=['jpg', 'png', 'jpeg'])
 
 if uploaded_file is not None:
-    image = Image
+    image = Image.open(uploaded_file)
+    st.image(image, caption="Uploaded Image", use_column_width=True)
+    st.write("Classifying...")
+    class_name = classify_image(image)
+    st.write(f"The predicted class of the image is: {class_name}")
