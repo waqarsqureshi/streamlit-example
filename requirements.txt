@@ -17,7 +17,7 @@ fonttools==4.25.0
 gitdb==4.0.10
 GitPython==3.1.32
 # Editable install with no version control (grad-cam==1.4.8)
--e /home/pms/pytorch-grad-cam-master
+-e git+https://github.com/jacobgil/pytorch-grad-cam.git
 humanfriendly==10.0
 inflection==0.5.1
 mkl-fft==1.3.6
@@ -64,8 +64,7 @@ rich==13.4.2
 safetensors==0.3.1
 scikit-learn-intelex==20230426.111436
 scipy==1.10.1
-# Editable install with no version control (segment-anything==1.0)
--e /home/pms/segment-anything
+
 sentry-sdk==1.28.1
 setproctitle==1.3.2
 smbprotocol==1.10.1
