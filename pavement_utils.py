@@ -9,6 +9,7 @@ from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from pathlib import Path
 import torchvision.transforms as T
 import matplotlib.pyplot as plt
+import pandas as pd
 import numpy as np
 import time
 import csv
@@ -472,94 +473,112 @@ def should_discard_image(segImage, orig, threshold_percentage):
     thres = (orig.shape[0] * orig.shape[1]) * threshold_percentage
     return count < thres or len(contours) > 25
 #=============================================================
-#This function is used when you like to see the segmentation 1 by 1
-def PavementExtraction2(folder_path, model, device):
-    if folder_path:
-        if os.path.isdir(folder_path):
-            images = [f for f in glob.glob(os.path.join(folder_path, '**', '*.[pjP][npP][gG]*'), recursive=True)]
-            # Sort the image paths
-            images.sort()
-            # Allow the user to set the threshold value
-            threshold_percentage = st.slider("Set the threshold percentage:", min_value=0.0, max_value=1.0, value=0.10, step=0.01)
 
-            image_names = [os.path.basename(image) for image in images]  # Extracting only the image names
-            selected_image_name = st.selectbox("Choose an image:", image_names)
-            selected_image_index = image_names.index(selected_image_name)
-            image_path = images[selected_image_index]  # Get the full path of the selected image
-            segImage, orig = process_image(image_path, model)
-            
-            # Check if the image should be discarded
-            if not should_discard_image(segImage, orig,threshold_percentage=0.10):
-                # Display the segmented images in Streamlit
-                segImage_resized = cv2.resize(segImage, (700, 300))
-                st.image(segImage_resized, caption="Pavement Extracted Image", use_column_width=True)
-                
-                # Save the segmented image
-                save_folder = st.text_input("Enter the folder path to save the segmented image:", "")
-                if save_folder:
-                    if os.path.isdir(save_folder):
-                        save_button = st.button("Save Image")
-                        if save_button:
-                            save_path = os.path.join(save_folder, f"{os.path.splitext(selected_image_name)[0]}_segImg{os.path.splitext(selected_image_name)[1]}")
-                            cv2.imwrite(save_path, segImage_resized)
-                            st.success(f"Image saved successfully at {save_path}")
-                    else:
-                        st.error("Please enter a valid folder path.")
-            else:
-                st.warning("The image was discarded due to poor segmentation results.")
-####################################################
 def zip_folder(folder_path, zip_name):
     with zipfile.ZipFile(zip_name, 'w') as zipf:
         for root, _, files in os.walk(folder_path):
             for file in files:
                 zipf.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), folder_path))
-##################################################
-def process_all_images(folder_path, model, save_folder,threshold_percentage):
-    # Create a directory for saving processed images
-    os.makedirs(save_folder, exist_ok=True)
+                
+#============================================================
+def process_all_images(folder_path, model, seg_save_folder, crop_save_folder, threshold_percentage):
+    """
+    Process all images in the given folder using the provided model.
     
+    Parameters:
+    - folder_path: Path to the folder containing images to be processed.
+    - model: The trained model used for image processing.
+    - seg_save_folder: Folder where segmented images will be saved.
+    - crop_save_folder: Folder where cropped images will be saved.
+    - threshold_percentage: Threshold value for image processing.
+    
+    Returns:
+    - URLs for downloading zipped segmented and cropped images.
+    """
+    
+    # Fetch all image paths from the folder
     images = [f for f in glob.glob(os.path.join(folder_path, '**', '*.[pjP][npP][gG]*'), recursive=True)]
     total_images = len(images)
     
-    # Create a progress bar in Streamlit
+    # Create a progress bar in Streamlit for user feedback
     progress_bar = st.progress(0)
     
-    for image_path in images:
-        # Check if the processing should be stopped
-        if 'stop_processing' in st.session_state and st.session_state.stop_processing:
+    # Process each image
+    while st.session_state.current_image_index < total_images:
+        image_path = images[st.session_state.current_image_index]
+        
+        # Allow user to stop the processing
+        if st.session_state.stop_processing:
             break
         
+        # Process the current image using the model
         segImage, orig = process_image(image_path, model)
         if not should_discard_image(segImage, orig, threshold_percentage):
-            segImg_path = os.path.join(save_folder, f"{os.path.splitext(os.path.basename(image_path))[0]}_segImg{os.path.splitext(image_path)[1]}")
-            cropImg_path = os.path.join(save_folder, f"{os.path.splitext(os.path.basename(image_path))[0]}_cropImg{os.path.splitext(image_path)[1]}")
+            segImg_path = os.path.join(seg_save_folder, f"{os.path.splitext(os.path.basename(image_path))[0]}{os.path.splitext(image_path)[1]}")
+            cropImg_path = os.path.join(crop_save_folder, f"{os.path.splitext(os.path.basename(image_path))[0]}{os.path.splitext(image_path)[1]}")
             save(segImg_path, cropImg_path, image_path, None, segImage[230:560,0:700], orig[230:560,0:700])
 
         # Update the current image index in session state
         st.session_state.current_image_index += 1
         
-        # Update the progress bar
+        # Update the progress bar for user feedback
         progress_bar.progress(st.session_state.current_image_index / total_images)
 
-    # If all images have been processed, zip the folder
-    if st.session_state.current_image_index >= total_images:
-        zip_name = os.path.join(folder_path, "processed_images.zip")
-        zip_folder(save_folder, zip_name)
-        st.write(os.path.basename(folder_path))
-        zip_url = f"http://192.168.1.65:8502/{os.path.basename(folder_path)}/{os.path.basename(zip_name)}"
-        st.markdown(f"[Download Processed Images]({zip_url})")
-        progress_bar.progress(0)
-#################################################
+    # Reset the image index and stop_processing flag for the next run
+    st.session_state.current_image_index = 0
+    st.session_state.stop_processing = False
+    progress_bar.progress(0)
+
+    # Zip the segmented and cropped folders separately for user to download
+    seg_zip_name = os.path.join(folder_path, "seg_images.zip")
+    crop_zip_name = os.path.join(folder_path, "crop_images.zip")
+    shutil.make_archive(seg_zip_name[:-4], 'zip', seg_save_folder)
+    shutil.make_archive(crop_zip_name[:-4], 'zip', crop_save_folder)
+
+    # Provide download links for both zipped folders
+    seg_zip_url = f"http://192.168.1.65:8502/{os.path.basename(folder_path)}/{os.path.basename(seg_zip_name)}"
+    crop_zip_url = f"http://192.168.1.65:8502/{os.path.basename(folder_path)}/{os.path.basename(crop_zip_name)}"
+
+    return seg_zip_url, crop_zip_url
+
+#===========================================================
+
+#==========================================================
 def save(segImg_path, cropImg_path, path, args, segImage, orig):
-    # Assuming this function saves the segmented and cropped images
+    """
+    Save the processed images.
+    
+    Parameters:
+    - segImg_path: Path to save the segmented image.
+    - cropImg_path: Path to save the cropped image.
+    - path: Original image path (not used in this function but kept for compatibility).
+    - args: Additional arguments (not used in this function but kept for compatibility).
+    - segImage: The segmented image data.
+    - orig: The original image data.
+    """
     cv2.imwrite(segImg_path, segImage)
     cv2.imwrite(cropImg_path, orig)
-#######################################################
+
+#===========================================================
 def PavementExtraction(folder_path, model, device):
+    """
+    Streamlit interface for pavement extraction.
+    
+    Parameters:
+    - folder_path: Path to the folder containing images to be processed.
+    - model: The trained model used for image processing.
+    - device: The device used for processing (e.g., CPU, GPU).
+    """
     if folder_path:
         if os.path.isdir(folder_path):
             # Allow the user to set the threshold value
             threshold_percentage = st.slider("Set the threshold percentage:", min_value=0.0, max_value=1.0, value=0.10, step=0.01)
+
+            # Create directories for saving segmented and cropped images
+            seg_save_folder = os.path.join(folder_path, "seg_images")
+            crop_save_folder = os.path.join(folder_path, "crop_images")
+            os.makedirs(seg_save_folder, exist_ok=True)
+            os.makedirs(crop_save_folder, exist_ok=True)
 
             # Initialize session state variables if they don't exist
             if 'current_image_index' not in st.session_state:
@@ -570,12 +589,40 @@ def PavementExtraction(folder_path, model, device):
             # Start button to begin processing
             if st.button("Start"):
                 st.session_state.stop_processing = False
-                save_folder = "processed_images"
-                process_all_images(folder_path, model, save_folder,threshold_percentage)
+                process_all_images(folder_path, model, seg_save_folder, crop_save_folder, threshold_percentage)
 
             # Stop button to halt processing
             if st.button("Stop"):
                 st.session_state.stop_processing = True
+
+            # After processing all images, allow user to view the processed images
+            segmented_images = [f for f in glob.glob(os.path.join(seg_save_folder, '*.[pjP][npP][gG]*'))]
+            if segmented_images:
+                # Check if 'selected_image' is already in the session state
+                if 'selected_image' not in st.session_state:
+                    st.session_state.selected_image = segmented_images[0]  # default to the first image
+
+                # Dropdown for user to select an image to view
+                st.session_state.selected_image = st.selectbox("Select an image to view:", segmented_images, index=segmented_images.index(st.session_state.selected_image))
+    
+                # Display the segmented version of the selected image
+                seg_image_path = os.path.join(st.session_state.selected_image)
+                st.image(seg_image_path, caption="Segmented Image", use_column_width=True)
+
+            # Provide download links for both zipped folders, if they exist
+            seg_zip_name = os.path.join(folder_path, "seg_images.zip")
+            crop_zip_name = os.path.join(folder_path, "crop_images.zip")
+            
+            if os.path.exists(seg_zip_name):
+                seg_zip_url = f"http://192.168.1.65:8502/{os.path.basename(folder_path)}/{os.path.basename(seg_zip_name)}"
+                st.markdown(f"[Download Segmented Images]({seg_zip_url})")
+            else:
+                st.error("Segmented images zip file does not exist.")
+
+            if os.path.exists(crop_zip_name):
+                crop_zip_url = f"http://192.168.1.65:8502/{os.path.basename(folder_path)}/{os.path.basename(crop_zip_name)}"
+                st.markdown(f"[Download Cropped Images]({crop_zip_url})")
+            else:
+                st.error("Cropped images zip file does not exist.")
         else:
             st.error("The folder path is not valid.")
-  

@@ -1,242 +1,100 @@
+# Welcome to Streamlit!
+
+Edit `/streamlit_app.py` to customize this app to your heart's desire. :heart:
+
 Pavement Surface Condition Index Application
-Table of Contents
+=============================================
 
-    Author and Affiliation
-    Overview
-    Pre-requisites
-    Dataset Utilities
-    Functions Breakdown
-    Important Notes
-
-Author and Affiliation
-
-    Author: Waqar Shahid Qureshi
-    Affiliation: TU Dublin
+Authors: Waqar Shahid Qureshi and Dympna O Sullivan
+Affiliation: TU Dublin
 
 Overview
+--------
+The Pavement Surface Condition Index Application is a robust image processing and classification tool tailored for pavement condition analysis. It leverages deep learning models to classify and segment images, subsequently processing and visualizing the outcomes via the Streamlit framework.
 
-This application is designed to analyze pavement conditions using images. It offers three main functionalities:
+Key Features:
+- Pavement Rating
+- Pavement Distress Analysis
+- Pavement Surface Extraction
 
-    Pavement Rating
-    Pavement Distress Analysis
-    Pavement Surface Extraction
+Setup & Usage
+-------------
+1. **Environment Setup**:
+   Ensure the necessary libraries and dependencies are installed. Utilize the `requirements.txt` for environment setup:
+   ```bash
+   pip install -r requirements.txt
 
-Pre-requisites
-Setting up the Environment
+Here's the refactored readme.txt for the Pavement Surface Condition Index Application:
 
-Before running the application, ensure that the required libraries and dependencies are installed. Use the requirements.txt file to set up the environment:
+markdown
 
-bash
+Pavement Surface Condition Index Application
+=============================================
 
-pip install -r requirements.txt
+Authors: Waqar Shahid Qureshi and Dympna O Sullivan
+Affiliation: TU Dublin
 
-Ensure you are in the temp folder and start an HTTP server using:
+Overview
+--------
+The Pavement Surface Condition Index Application is a robust image processing and classification tool tailored for pavement condition analysis. It leverages deep learning models to classify and segment images, subsequently processing and visualizing the outcomes via the Streamlit framework.
 
-bash
+Key Features:
+- Pavement Rating
+- Pavement Distress Analysis
+- Pavement Surface Extraction
 
-python3 -m http.server 8502 --bind 192.168.1.65
+Setup & Usage
+-------------
+1. **Environment Setup**:
+   Ensure the necessary libraries and dependencies are installed. Utilize the `requirements.txt` for environment setup:
+   ```bash
+   pip install -r requirements.txt
 
-Run the Streamlit application using:
+    Starting the Application:
+        Navigate to the temp directory.
+        Initiate an HTTP server:
 
-bash
+        python3 -m http.server 8502 --bind 192.168.1.65
+    
+    Launch the Streamlit application:
+    streamlit run streamlit_app.py --server.address 192.168.1.65 --server.port 8501
+Dependencies
 
-streamlit run streamlit_app.py --server.address 192.168.1.65 --server.port 8501
+    streamlit: Web application interface.
+    timm, torch, torchvision: Deep learning libraries.
+    cv2, PIL: Image processing.
+    numpy: Numerical operations.
+    datetime, time: Time-related functionalities.
+    csv, glob, os, zipfile, shutil: File operations.
+    mmseg.apis: Image segmentation.
+    pytorch_grad_cam: Gradient-based visual explanations.
 
 Dataset Utilities
 
-Copyright (c) OpenMMLab. All rights reserved.
+Handles datasets, notably Cityscapes and RoadSurvey. Incorporates class names, RGB color palettes for each class, and retrieval functions based on dataset names.
+Application Flow
 
-This section provides utility functions for handling different datasets, specifically Cityscapes and RoadSurvey. It includes class names for each dataset, color palettes (RGB) for each class in the datasets, and functions to retrieve class names and palettes based on the dataset name.
+    User selects a pavement analysis process.
+    Two logos are displayed.
+    "Pavement Surface Condition Index" title appears.
+    User uploads a ZIP file containing images.
+    ZIP file undergoes:
+        Extraction to a distinct directory.
+        Image retrieval and processing based on chosen option.
 
-Functions and Methods:
+Models
 
-    main():
-        Purpose: The main driver of the application. It manages the user interface, ZIP file extraction, and invokes the appropriate pavement analysis functions based on user choice.
-        Input Arguments: None.
-        Output: None (directly interacts with the Streamlit interface).
+Available on Hugging Face.
+Functions & Methods
 
-    cityscapes_classes():
-        Purpose: Provides class names for the Cityscapes dataset.
-        Input Arguments: None.
-        Output: List of class names for the Cityscapes dataset.
-
-    roadsurvey_classes():
-        Purpose: Provides class names for the RoadSurvey dataset.
-        Input Arguments: None.
-        Output: List of class names for the RoadSurvey dataset.
-
-    cityscapes_palette():
-        Purpose: Provides the RGB color palette for the Cityscapes dataset.
-        Input Arguments: None.
-        Output: RGB color palette for the Cityscapes dataset.
-
-    roadsurvey_palette():
-        Purpose: Provides the RGB color palette for the RoadSurvey dataset.
-        Input Arguments: None.
-        Output: RGB color palette for the RoadSurvey dataset.
-
-    get_classes(dataset):
-        Purpose: Retrieves class names for a given dataset.
-        Input Arguments:
-            dataset (str): Name of the dataset.
-        Output: List of class names for the specified dataset.
-
-    get_palette(dataset):
-        Purpose: Retrieves the RGB color palette for a given dataset.
-        Input Arguments:
-            dataset (str): Name of the dataset.
-        Output: RGB color palette for the specified dataset.
-
-    get_transform(size, NORMALIZE_MEAN, NORMALIZE_STD):
-        Purpose: Returns the image transformation pipeline.
-        Input Arguments:
-            size (int): Desired image size.
-            NORMALIZE_MEAN (list): Normalization mean values.
-            NORMALIZE_STD (list): Normalization standard deviation values.
-        Output: A composed transformation for image preprocessing.
-
-    reshape_transform(tensor, height, width):
-        Purpose: Reshapes the tensor for visualization.
-        Input Arguments:
-            tensor (Tensor): Input tensor.
-            height (int): Desired height.
-            width (int): Desired width.
-        Output: Reshaped tensor.
-
-    create_load_model(name, checkpoint_path):
-        Purpose: Creates and loads a model with a given checkpoint.
-        Input Arguments:
-            name (str): Model name.
-            checkpoint_path (str): Path to the model checkpoint.
-        Output: Loaded model.
-
-    add_classes_to_image(image, top3_predictions):
-        Purpose: Adds class predictions to an image.
-        Input Arguments:
-            image (Image): Input image.
-            top3_predictions (list): Top 3 class predictions.
-        Output: Image with class annotations.
-
-    classify_image(image_path, model, device):
-        Purpose: Classifies a single image.
-        Input Arguments:
-            image_path (str): Path to the image.
-            model (Model): Trained model.
-            device (Device): Computation device (CPU/GPU).
-        Output: Predicted class name and top 3 predictions.
-
-    classify2(folder_path, model, device):
-        Purpose: Processes images one by one and displays results.
-        Input Arguments:
-            folder_path (str): Path to the folder containing images.
-            model (Model): Trained model.
-            device (Device): Computation device.
-        Output: None (directly interacts with the Streamlit interface).
-
-    process_single_image(image_path, model, device):
-        Purpose: Processes a single image.
-        Input Arguments:
-            image_path (str): Path to the image.
-            model (Model): Trained model.
-            device (Device): Computation device.
-        Output: Predicted class name and top 3 predictions.
-
-    update_progress_bar(progress_bar, current_index, total_images):
-        Purpose: Updates the progress bar in the Streamlit app.
-        Input Arguments:
-            progress_bar (Progress Bar): Streamlit progress bar.
-            current_index (int): Current image index.
-            total_images (int): Total number of images.
-        Output: None (updates the Streamlit progress bar).
-
-    display_results(images, folder_path):
-        Purpose: Displays the results of the processed images.
-        Input Arguments:
-            images (list): List of processed images.
-            folder_path (str): Path to the folder containing images.
-        Output: None (directly interacts with the Streamlit interface).
-
-    plot_predictions():
-        Purpose: Plots the predictions over time.
-        Input Arguments: None.
-        Output: None (directly interacts with the Streamlit interface).
-
-    save_to_csv(folder_path):
-        Purpose: Saves the results to a CSV file.
-        Input Arguments:
-            folder_path (str): Path to the folder containing images.
-        Output: None (saves results to a CSV file).
-
-    classify(folder_path, model, device):
-        Purpose: Classifies all images in a folder.
-        Input Arguments:
-            folder_path (str): Path to the folder containing images.
-            model (Model): Trained model.
-            device (Device): Computation device.
-        Output: None (directly interacts with the Streamlit interface).
-
-    gradCam(folder_path, model, device):
-        Purpose: Applies Grad-CAM visualization to images.
-        Input Arguments:
-            folder_path (str): Path to the folder containing images.
-            model (Model): Trained model.
-            device (Device): Computation device.
-        Output: None (directly interacts with the Streamlit interface).
-
-    initialize_model(model_name, checkpointPath, config):
-        Purpose: Initializes and loads a model.
-        Input Arguments:
-            model_name (str): Model name.
-            checkpointPath (str): Path to the model checkpoint.
-            config (str, optional): Model configuration.
-        Output: Initialized model and computation device.
-
-    readImage_576x720(path):
-        Purpose: Reads and resizes an image.
-        Input Arguments:
-            path (str): Path to the image.
-        Output: Resized image.
-
-    result_segImage(result, palette, CLASS_NAMES):
-        Purpose: Computes the segmentation mask for an image.
-        Input Arguments:
-            result (Result): Segmentation result.
-            palette (list): Color palette.
-            CLASS_NAMES (list): Class names.
-        Output: Segmentation mask.
-
-    process_image(image_path, model):
-        Purpose: Processes an image for segmentation.
-        Input Arguments:
-            image_path (str): Path to the image.
-            model (Model): Trained model.
-        Output: Segmented image and original image.
-
-    should_discard_image(segImage, orig, threshold_percentage):
-        Purpose: Determines if an image should be discarded based on segmentation results.
-        Input Arguments:
-            segImage (Image): Segmented image.
-            orig (Image): Original image.
-            threshold_percentage (float): Threshold percentage for discarding.
-        Output: Boolean indicating if the image should be discarded.
-
-    PavementExtraction2(folder_path, model, device):
-        Purpose: Processes images for pavement extraction.
-        Input Arguments:
-            folder_path (str): Path to the folder containing images.
-            model (Model): Trained model.
-            device (Device): Computation device.
-        Output: None (directly interacts with the Streamlit interface).
-
-    zip_folder(folder_path, zip_name):
-        Purpose: Zips a folder.
-        Input Arguments:
-            folder_path (str): Path to the folder.
-            zip_name (str): Desired name for the zip file.
-        Output: None (creates a zip file).
-
-
+Detailed descriptions of the main functions and methods driving the application are provided, ranging from dataset utility functions, image processing functions, to segmentation and visualization methods.
 Important Notes
 
-    Ensure that the paths for model checkpoints, configurations, and logos are correctly set.
-    The application uses session states (st.session_state) to persist data across reruns. This is especially useful for storing the model and device information once initialized, so they don't have to be reloaded on every interaction.
+    Ensure accurate paths for model checkpoints, configurations, and logos.
+    The application leverages session states (st.session_state) to maintain data across reruns, beneficial for preserving model and device details.
+
+
+This refactored `readme.txt` provides a concise yet comprehensive overview of the application
+
+
+
