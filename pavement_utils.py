@@ -147,7 +147,7 @@ def classify_image(image_path, model, device):
 #============================================================
 #This function is to process image 1 by 1
 def classify2(folder_path, model, device):
-        images = [f for f in glob.glob(os.path.join(folder_path, '**', '*.[pjP][npP][gG]*'), recursive=True)]
+        images = [f for f in glob.glob(os.path.join(folder_path, '**', '*.[pjPJ][npP][gG]*'), recursive=True)]
         # Sort the image paths
         images.sort()
         if folder_path:                
@@ -230,7 +230,12 @@ def update_progress_bar(progress_bar, current_index, total_images):
 #============================================================
 def display_results(images, folder_path):
     # Dropdown to select an image
-    selected_image_index = st.selectbox("Select an image to view its result:", list(range(len(images))))
+    image_names = [os.path.basename(image) for image in images]  # Extracting only the image names
+
+    selected_image_name = st.selectbox("Choose an image:", image_names)
+    selected_image_index = image_names.index(selected_image_name)       
+    
+    #selected_image_index = st.selectbox("Select an image to view its result:", list(range(len(images))))
     
     if selected_image_index in st.session_state.indices:
         idx = st.session_state.indices.index(selected_image_index)
@@ -244,6 +249,7 @@ def display_results(images, folder_path):
         st.image(image_with_classes, caption=image_name)
     else:
         st.write("Image is not processed yet.")
+
 
 #============================================================
 def plot_predictions():
@@ -278,9 +284,8 @@ def classify(folder_path, model, device):
     # Check if the folder path is valid
     if folder_path:
         # Get all image paths from the folder
-        images = [f for f in glob.glob(os.path.join(folder_path, '**', '*.[pjP][npP][gG]*'), recursive=True)]
+        images = [f for f in glob.glob(os.path.join(folder_path, '**', '*.[pjPJ][npP][gG]*'), recursive=True)]
         images.sort()
-
         # Initialize session state variables if they don't exist
         if 'image_index' not in st.session_state:
             st.session_state.image_index = 0
@@ -338,7 +343,7 @@ def gradCam(folder_path, model, device):
 
     if folder_path:
         if os.path.isdir(folder_path):
-            images = [f for f in glob.glob(os.path.join(folder_path, '**', '*.[pjP][npP][gG]*'), recursive=True)]
+            images = [f for f in glob.glob(os.path.join(folder_path, '**', '*.[pjPJ][npP][gG]*'), recursive=True)]
             # Sort the image paths
             images.sort()
             image_names = [os.path.basename(image) for image in images]  # Extracting only the image names
@@ -416,6 +421,8 @@ def readImage_576x720(path):
     elif image.shape[:2] == (632,720):
         orig = np.zeros((576, 720, 3), np.uint8)
         orig  = image [56:632,0:720]
+    elif image.shape[:2] == (1080,1920):
+        orig = cv2.resize(image,(720,576))
     else:
         orig = cv2.resize(image,(720, 576)) #(w,h) always remember cv2 takes width and height and numpy use height and width
     return orig
@@ -497,7 +504,7 @@ def process_all_images(folder_path, model, seg_save_folder, crop_save_folder, th
     """
     
     # Fetch all image paths from the folder
-    images = [f for f in glob.glob(os.path.join(folder_path, '**', '*.[pjP][npP][gG]*'), recursive=True)]
+    images = [f for f in glob.glob(os.path.join(folder_path, '**', '*.[pjPJ][npP][gG]*'), recursive=True)]
     total_images = len(images)
     
     # Create a progress bar in Streamlit for user feedback
@@ -540,8 +547,6 @@ def process_all_images(folder_path, model, seg_save_folder, crop_save_folder, th
     crop_zip_url = f"http://192.168.1.65:8502/{os.path.basename(folder_path)}/{os.path.basename(crop_zip_name)}"
 
     return seg_zip_url, crop_zip_url
-
-#===========================================================
 
 #==========================================================
 def save(segImg_path, cropImg_path, path, args, segImage, orig):
